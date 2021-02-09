@@ -1,5 +1,5 @@
 let linebot = require('linebot');
-const pg = require('pg');
+// const pg = require('pg');
 
 // 初始化 line bot 需要的資訊，在 Heroku 上的設定的 Config Vars，可參考 Step2
 let bot = linebot({
@@ -9,27 +9,47 @@ let bot = linebot({
 });
 
 
-
-const config = {
-    host: "ec2-54-237-135-248.compute-1.amazonaws.com",
-    user: "frbftxxjblaves",
-    database: "dehi54mlh790fp",
-    password: "1400e1ffea2ef7f43e755bf3fcd70e0d780ef076f7be66549cb57e31f37eb410",
-    port: 5432,
-    // 擴充套件屬性
-    max: 20, // 連線池最大連線數
-}
+// const config = {
+//     host: "ec2-54-237-135-248.compute-1.amazonaws.com",
+//     user: "frbftxxjblaves",
+//     database: "dehi54mlh790fp",
+//     password: "1400e1ffea2ef7f43e755bf3fcd70e0d780ef076f7be66549cb57e31f37eb410",
+//     port: 5432,
+//     // 擴充套件屬性
+//     max: 20, // 連線池最大連線數
+// }
 
 // 建立連線池
-var client = new pg.Client(config);
-// 查詢
-client.connect(err => {
-    if (err) throw err;
-    else {
-        console.log("DB connected");
-    }
-});
+// var client = new pg.Client(config);
+// // 查詢
+// client.connect(err => {
+//     if (err) throw err;
+//     else {
+//         console.log("DB connected");
+//     }
+// });
 
+
+const { Pool, Client} = require('pg')
+const connectionString = "postgres://frbftxxjblaves:1400e1ffea2ef7f43e755bf3fcd70e0d780ef076f7be66549cb57e31f37eb410@ec2-54-237-135-248.compute-1.amazonaws.com:5432/dehi54mlh790fp"
+const pool = new Pool({
+    connectionString,
+  })
+
+  pool.query('SELECT NOW()', (err, res) => {
+    console.log(err, res)
+    pool.end()
+  })
+  const client = new Client({
+    connectionString,
+  })
+  client.connect()
+  client.query('SELECT NOW()', (err, res) => {
+    console.log(err, res)
+    client.end()
+  }) 
+
+  
 // function queryDatabase() {
 //     console.log(`Running query to PostgreSQL server: ${config.host}`);
 
