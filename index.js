@@ -76,38 +76,68 @@ function addmember(event) {
 function queryMember(event) {
   const collection = mongodb.collection('addressBook');
   let name = event.message.text.replace("查", "").replace(" ", "")
-  let member = {
-    'name': name
-  };
+  let member = [ 
+    { 'cName': { $regex: name }} ,
+    { 'eName': { $regex: name, $options: 'i' }}
+  ];
   collection
-    .findOne(member)
+    .find( { $or : member}).toArray()
     .then(result => {
-      console.log(result)
+      // console.log(result)
       return result
     }).then(result => {
-      console.log(result);
-      let msg = `${result}`
-      let msg2 = {
-        "type": "template",
-        "altText": `${name}的資料`,
-        "template": {
-            "type": "confirm",
-            "text": "Are you sure?",
+      let msg = {};
+      const column = []
+      if (result.length >0){
+        
+        console.log(result);
+        console.log("yes");
+        for (let i = 0; i < result.length; i++) {
+          console.log(result[i]);
+          let member = {
+            "thumbnailImageUrl": "https://example.com/bot/images/item2.jpg",
+            "imageBackgroundColor": "#000000",
+            "title": `${result[i].cName} ${result[i].eName}`,
+            "text": `${result[i].dep}`,
+            "defaultAction": {
+              "type": "uri",
+              "label": "View detail",
+              "uri": "http://example.com/page/222"
+            },
             "actions": [
-                {
-                  "type": "message",
-                  "label": "Yes",
-                  "text": "yes"
-                },
-                {
-                  "type": "message",
-                  "label": "No",
-                  "text": "no"
-                }
+              {
+                "type": "uri",
+                "label": `${result[i].extension}`,
+                "uri": `tel:${result[i].extension}`
+              },
+              {
+                "type": "uri",
+                "label": `${result[i].phone}`,
+                "uri": `tel:${result[i].phone}`
+              }
             ]
-        }
-      }
-      event.reply(msg2)
+          };
+          column.push(member)
+        };
+        console.log(column)
+  
+        msg = {
+          "type": "template",
+          "altText": `${name}的資料`,
+          "template": {
+            "type": "carousel",
+            "imageAspectRatio": "square",
+            "imageSize": "cover"
+          }
+        };
+        msg.template.columns = column;
+
+      } else{
+        msg="查無此人"
+        console.log("no data")
+      };     
+
+      event.reply(msg)
         .then(function (data) {
           // 當訊息成功回傳後的處理
           console.log("回傳成功")
@@ -116,21 +146,23 @@ function queryMember(event) {
           console.log("回傳失敗", err)
         });
 
-    }).catch( err => {
-      console.log(err)
+    }).catch(err => {
+      console.log(err);
     });
 
-}
+};
+
+
 // 當有人傳送訊息給 Bot 時
 bot.on('message', function (event) {
   // 回覆訊息給使用者 (一問一答所以是回覆不是推送)
-  console.log(event.message.text);
-  let msg =event.message.text;
-  if (msg.includes('查')){
-    console.log("yes")
-    queryMember(event)
+  console.log("來訊息了 - ", event.message.text);
+  let msg = event.message.text;
+  if (msg.includes('查')) {
+    console.log(`查詢中..........`);
+    queryMember(event);
   } else {
-    console.log("NO")
+    console.log("沒寫這東西")
   };
 
 
